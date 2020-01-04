@@ -67,3 +67,37 @@ error_request(fd,method,"501","NOT Implemented","weblet does not implement this 
 return;
 }
 read_requesthdrs(&rio);
+static_flag=is_static(uri);
+if(static_flag)
+parse_static_uri(uri,filename);
+else
+parse_dynamic_uri(uri,filename,cgiargs);
+
+if(stat(filename,&sbuf)<0){
+error_request(fd,filename,"404","NOT found","weblet could not find this file");
+return;
+}
+
+if(static_flag){
+  if(!(S_ISREG(sbuf.st_mode))||!(S_IRUSR&sbuf.st_mode)){
+     error_request(fd,filename,"403","Forboden","weblet is not permtted to read this file");
+     return;
+  }
+  feed_static(fd,filename,sbuf.st_size);
+ }
+  else{
+     if(!(S_ISREG(sbuf.st_mode))||!(S_IXUSR&sbuf.st_mode)){
+        error_request(fd,filename,"403","Forbiden","weblet could not run the CGI program");
+        return;
+     }
+     feed_dynamic(fd,filename,cgiargs);
+   }
+}
+
+int is_static(char *uri)
+{
+  if(!strstr(uri,"cgi-bin"))
+  return 1;
+  else
+  return 0;
+}
