@@ -50,4 +50,20 @@ while(1){
 }
 
 
+void process_trans(int fd)
+{
+int static_flag;
+struct stat sbuf;
+char buf[MAXLINE],method[MAXLINE],uri[MAXLINE],version[MAXLINE];
+char filename[MAXLINE],cgiargs[MAXLINE];
+rio_t rio;
 
+/*读取命令行和头部*/
+rio_readinitb(&rio,fd);
+rio_readlineb(&rio,buf,MAXLINE);
+sscanf(buf,"%s %s %s",method,uri,version);
+if(strcasecmp(method,"GET")&&strcasecmp(method,"POST")){
+error_request(fd,method,"501","NOT Implemented","weblet does not implement this method");
+return;
+}
+read_requesthdrs(&rio);
