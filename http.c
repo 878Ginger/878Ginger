@@ -46,6 +46,11 @@ void get_filetype(char *filename,char *filetype);
 void feed_dynamic(int fd,char *filename,char *cgiargs,char *method,int contentlength);
 void error_request(int fd,char *cause,char *errnum,char *shortmsg,char *description);
 
+void void sigchld_handler(int sig){
+    while(waitpid(-1,0,WNOHANG)>0);
+    return;
+}
+
 int main(int argc,char **argv)
 {
     int listen_sock,conn_sock,port,clientlen;
