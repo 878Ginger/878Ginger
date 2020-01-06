@@ -71,7 +71,14 @@ listen_sock=open_listen_sock(port);
 while(1){
     clientlen = sizeof(clientaddr);
     conn_sock = accept(listen_sock,(SA*)&clientaddr,&clientlen);
-    process_trans(conn_sock);
+    if(fork()==0)/*子进程运行*/
+      {
+         close(listen_sock);  /*child process closes its listening socket*/
+         process_trans(conn_sock); /*Child process services client*/
+         close(conn_sock);     /*Child process closes connection with client*/
+        sleep(10);
+         exit(0);              /*Child process exits*/
+      }
     close(conn_sock);   /*Parent closes connected socket(important!)*/
          }
 }
