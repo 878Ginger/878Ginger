@@ -15,6 +15,9 @@
 #include <errno.h>
 #include <fcntl.h>
 
+
+
+
 void process_trans(int fd);
 int is_static(char *uri);
 void parse_static_uri(char *uri,char *filename);
@@ -120,4 +123,38 @@ rio_writen(fd,buf,strlen(buf));
 sprintf(buf,"Content-length:%d\r\n\r\n",(int)strlen(body));
 rio_writen(fd,buf,strlen(buf));
 rio_writen(fd,body,strlen(body));
+}
+
+void read_requesthdrs(rio_t *rp)
+{
+char buf[MAXLINE];
+rio_readlineb(rp,buf,MAXLINE);
+while(strcmp(buf,"\r\n")){
+printf("%s",buf);
+rio_readlineb(rp,buf,MAXLINE);
+}
+return;
+}
+
+void parse_static_uri(char *uri,char *filename)
+{
+	char *ptr;
+	strcpy(filename,".");
+	strcat(filename,uri);
+	if(uri[strlen(uri)-1]=='/')
+		strcat(filename,"home.html");
+}
+
+void parse_dynamic_uri(char *uri,char *filename,char *cgiargs)
+{
+	char *ptr;
+	ptr = index(uri,'?');
+	if(ptr){
+		strcpy(cgiargs,ptr+1);
+		*ptr='\0';
+	}
+	else
+		strcpy(cgiargs,"");
+	strcpy(filename,".");
+	strcat(filename,uri);
 }
