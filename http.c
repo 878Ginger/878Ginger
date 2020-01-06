@@ -248,3 +248,37 @@ void feed_static(int fd,char *filename,int filesize)
 	rio_writen(fd,srcp,filesize);
 	munmap(srcp,filesize);
 }
+void get_filetype(char *filename,char *filetype)
+{
+	if(strstr(filename,".html"))
+		strcpy(filetype,"text/html");
+	else if(strstr(filename,".jpg"))
+		strcpy(filetype,"image/jpeg");
+	else if(strstr(filename,".mpeg"))
+		strcpy(filetype,"video/mpeg");
+	else
+		strcpy(filetype,"text/html");
+}
+void feed_dynamic(int fd,char *filename,char *cgiargs)
+{
+char buf[MAXLINE],*emptylist[] = {NULL};
+int pfd[2];
+
+sprintf(buf,"HTTP/1.0 200 OK\r\n");
+rio_writen(fd,buf,strlen(buf));
+sprintf(buf,"Server:weblet Web Server\r\n");
+rio_writen(fd,buf,strlen(buf));
+
+pipe(pfd);
+if(fork()==0){
+close(pfd[1]);
+dup2(pfd[0],STDIN_FILENO);
+dup2(fd,STDOUT_FILENO);
+execve(filename,emptylist,environ);
+}
+
+close(pfd[0]);
+write(pfd[1],cgiargs,strlen(cgiargs)+1);
+wait(NULL);
+close(pfd[1]);
+}
